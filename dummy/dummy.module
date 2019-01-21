@@ -1,0 +1,44 @@
+<?php
+
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\Entity\NodeType;
+
+function dummy_entity_extra_field_info() {
+  $extra = [];
+  foreach (NodeType::loadMultiple() as $bundle) {
+    $extra['node'][$bundle->id()]['display']['estimated_read_time'] = [
+      'label' => t('Estimated read time'),
+      'description' => t('Рассчет времени чтения'),
+      'weight' => 100,
+	  'visible' => TRUE,
+    ];
+
+  }
+  return $extra;
+}
+
+function dummy_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
+  if ($display->getComponent('estimated_read_time') && $entity->hasField('body') && $entity->bundle() == 'novost') {
+    if (!$entity->body->isEmpty()) {
+      $word_per_minute = 130;
+      $word_count = str_word_count(strip_tags($entity->body->value));
+	  $estimated_read_time = ($word_count / $word_per_minute);
+	  if($estimated_read_time>1){
+		  $estimated_read_time = floor($estimated_read_time);
+		  $value = \Drupal::translation()
+			->formatPlural($estimated_read_time, '1 minute', '@count minutes');
+	  }else{
+		   $value = 'до минуты';
+	  }
+    }
+    $build['estimated_read_time'] = [
+      '#type' => 'markup',
+      '#markup' => "<p><strong>Чтение новости займет:</strong> {$value}</p>",
+    ];
+  }
+}
+
+

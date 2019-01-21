@@ -1,0 +1,5 @@
+name: dummy
+type: module
+description: Автоматический подсчет времени чтения
+package: Custom
+core: 8.x
